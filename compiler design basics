@@ -1,0 +1,71 @@
+#include <iostream>
+#include <string>
+#include <cctype>
+#include <vector>
+#include <unordered_map>
+
+using namespace std;
+
+enum TokenType { KEYWORD, IDENTIFIER, NUMBER, SYMBOL };
+
+struct Token {
+    TokenType type;
+    string value;
+};
+
+unordered_map<string, TokenType> keywords = {
+    {"int", KEYWORD}, {"float", KEYWORD}, {"if", KEYWORD}, {"else", KEYWORD}, {"return", KEYWORD}
+};
+
+TokenType classifyToken(const string& str) {
+    if (keywords.find(str) != keywords.end()) return KEYWORD;
+    if (isdigit(str[0])) return NUMBER;
+    if (isalpha(str[0]) || str[0] == '_') return IDENTIFIER;
+    return SYMBOL;
+}
+vector<Token> lexicalAnalyzer(const string& input) {
+    vector<Token> tokens;
+    string currentToken;
+    
+    for (char ch : input) {
+        if (isspace(ch)) {
+            if (!currentToken.empty()) {
+                tokens.push_back({classifyToken(currentToken), currentToken});
+                currentToken.clear();
+            }
+        } else if (isalnum(ch) || ch == '_') {
+            currentToken += ch;
+        } else {
+            if (!currentToken.empty()) {
+                tokens.push_back({classifyToken(currentToken), currentToken});
+                currentToken.clear();
+            }
+            tokens.push_back({SYMBOL, string(1, ch)});
+        }
+    }
+
+    if (!currentToken.empty()) {
+        tokens.push_back({classifyToken(currentToken), currentToken});
+    }
+    return tokens;
+}
+
+void printTokens(const vector<Token>& tokens) {
+    for (const Token& token : tokens) {
+        string type = (token.type == KEYWORD) ? "KEYWORD" : 
+                      (token.type == IDENTIFIER) ? "IDENTIFIER" : 
+                      (token.type == NUMBER) ? "NUMBER" : "SYMBOL";
+        cout << "Token: " << token.value << ", Type: " << type << endl;
+    }
+}
+
+int main() {
+    string input;
+    cout << "Enter code to analyze: ";
+    getline(cin, input);
+
+    vector<Token> tokens = lexicalAnalyzer(input);
+    printTokens(tokens);
+
+    return 0;
+}
